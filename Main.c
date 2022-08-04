@@ -38,21 +38,28 @@ int main(){
             passesCheck = true;
         }
         
-        printf("#%u: %s | %s", i, (passesCheck==1)?"OK":"FAIL", readString);
+        printf("#%u: %s | %s", i, (passesCheck==1)?"OK":"FL", readString);
     }
 
     fclose(inputFile);
+    printf("\n");
     return 0;
 }
 
 bool isVerified(char* readString){
     int length = strlen(readString);
-    int doLoop = true;
 
     for(int i = 0; i < length; i++){
-        
+        if(readString[i] != 'a' && readString[i] != 'b' && readString[i] != '\n'){
+            // printf("found a strange, unknown character! (%c)", readString[i]);
+            return false;
+        }
+
+        if(readString[i] == 'a' && (readString[i+1] != 'b' || readString[i+2] != 'b')){
+            // printf("%c found, but is followed by '%c%c', and not 'bb'",readString[i],readString[i+1],readString[i+2]);
+            return false;
+        }
     }
 
-    printf("end");
     return true;
 }
