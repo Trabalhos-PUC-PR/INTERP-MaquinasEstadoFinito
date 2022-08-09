@@ -174,8 +174,8 @@ bool passStateMachine(char *string)
       }
       break;
 
-    case 99:
     case 10:
+      // final de linha, deve ser ignorado.
       break;
 
     default:
