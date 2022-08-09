@@ -2,11 +2,24 @@
 #include <stdio.h>
 #include <string.h>
 
-#define stringSize 256
+#define stringMaxSize 256
 
-typedef enum { false = 0, true = 1 } bool;
+typedef enum
+{
+  false = 0,
+  true = 1
+} bool;
+
+typedef enum
+{
+  S0 = 0,
+  S1 = 1,
+  S2 = 2,
+  S_1 = -1
+} machineState;
+
 int selectFile();
-bool isVerified(char *readString);
+bool passStateMachine(char *string);
 
 /*
     Para obter os pontos relativos a este trabalho, você deverá criar um programa, utilizando a
@@ -17,7 +30,7 @@ segundo o alfabeto Σ = {𝑎, 𝑏, 𝑐}.
 contendo várias strings. A primeira linha do arquivo indica quantas strings estão no arquivo de texto de
 entrada. As linhas subsequentes contém uma string por linha. A seguir está um exemplo das linhas que
 podem existir em um arquivo de testes para o programa que você irá desenvolver:
-  
+
     3
     abbaba
     abababb
@@ -27,7 +40,7 @@ podem existir em um arquivo de testes para o programa que você irá desenvolver
 representado por um número inteiro positivo. A resposta do seu programa deverá conter uma, e
 somente uma linha de saída para cada string. Estas linhas conterão a string de entrada e o resultado
 da validação conforme o formato indicado a seguir:
-    
+
     abbaba: não pertence.
 
     A saída poderá ser enviada para um arquivo de textos, ou para o terminal padrão e será
@@ -39,11 +52,12 @@ irá testar seu programa com os arquivos de testes que você criar e com, no mí
 testes criado pelo próprio professor.
 */
 
-int main() {
+int main()
+{
 
   FILE *inputFile;
   int totalLines;
-  char readString[stringSize];
+  char readString[stringMaxSize];
   bool passesCheck = false;
 
   char file[50];
@@ -55,14 +69,18 @@ int main() {
 
   int selection = selectFile();
 
-  if (selection == -1) {
+  if (selection == -1)
+  {
     printf("Invalid selection!\n");
     return -1;
   }
 
-  if (selection == 4) {
+  if (selection == 4)
+  {
     strcpy(file, "custom.txt");
-  } else {
+  }
+  else
+  {
     char strSelect[10];
     strcpy(file, "input");
     sprintf(strSelect, "%d", selection);
@@ -72,30 +90,43 @@ int main() {
 
   inputFile = fopen(file, "r");
 
-  if (inputFile == NULL) {
+  if (inputFile == NULL)
+  {
     printf("No file names \"%s\" found!", file);
-    // fclose(inputFile);
     return -1;
   }
 
-  fgets(readString, stringSize, inputFile);
+  fgets(readString, stringMaxSize, inputFile);
   sscanf(readString, "%d", &totalLines);
-//   printf("lines: %i\n", totalLines);
 
-  for (int i = 0; i < totalLines; i++) {
+  for (int i = 0; i < totalLines; i++)
+  {
     passesCheck = false;
-    fgets(readString, stringSize, inputFile);
+    fgets(readString, stringMaxSize, inputFile);
 
-    if (isVerified(readString) == true) {
+    if (passStateMachine(readString) == true)
+    {
       passesCheck = true;
     }
 
-    if (passesCheck == false) {
+    if (passesCheck == false)
+    {
       int length = strlen(readString);
-      readString[length - 1] = 0;
+      if (i + 1 != totalLines)
+      {
+        readString[length - 1] = 0;
+      }
       printf("%s: não pertence.\n", readString);
     }
-    // sprintf("#%s: %s | %s", i, (passesCheck==1)?"OK":"FL", readString);
+    else
+    {
+      int length = strlen(readString);
+      if (i + 1 != totalLines)
+      {
+        readString[length - 1] = 0;
+      }
+      printf("%s: pertence.\n", readString);
+    }
   }
 
   fclose(inputFile);
@@ -103,33 +134,59 @@ int main() {
   return 0;
 }
 
-bool isVerified(char *readString) {
-  int length = strlen(readString);
-
-  for (int i = 0; i < length; i++) {
-    if (readString[i] != 'a' && readString[i] != 'b' && readString[i] != '\n') {
-      // printf("found a strange, unknown character! (%c)", readString[i]);
-      return false;
-    }
-
-    if (readString[i] == 'a' &&
-        (readString[i + 1] != 'b' || readString[i + 2] != 'b')) {
-      // printf("%c found, but is followed by '%c%c', and not
-      // 'bb'",readString[i],readString[i+1],readString[i+2]);
-      return false;
-    }
-  }
-
-  return true;
-}
-
-int selectFile() {
+int selectFile()
+{
   char option;
   scanf("%c", &option);
   int selection = option - 96;
 
-  if (selection > 4 || selection < 1) {
+  if (selection > 4 || selection < 1)
+  {
     return -1;
   }
   return selection;
+}
+
+bool passStateMachine(char *string)
+{
+  machineState state = S_1;
+  int stringSize = strlen(string);
+  for (int i = 0; i < stringSize; i++)
+  {
+    switch (string[i])
+    {
+    case ('a'):
+      if (state != S_1 && state != S0)
+      {
+        return false;
+      }
+      state = S2;
+      break;
+
+    case ('b'):
+      if (state != S0 && state != S_1)
+      {
+        state--;
+      }
+      else
+      {
+        state = S0;
+      }
+      break;
+
+    case 99:
+    case 10:
+      break;
+
+    default:
+      return false;
+      break;
+    }
+  }
+
+  if (state == 0)
+  {
+    return true;
+  }
+  return false;
 }
